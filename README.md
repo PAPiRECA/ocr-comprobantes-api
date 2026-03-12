@@ -9,7 +9,8 @@ Este proyecto consiste en una API desarrollada para procesar comprobantes y extr
 
 ## Tecnologías
 - Python
-- Flask o FastAPI
+- OpenAI
+- FastAPI
 - GitHub Codespaces
 
 ## Objetivo
@@ -18,5 +19,4 @@ Automatizar la lectura de comprobantes y facilitar el procesamiento de datos den
 ## Estado
 Proyecto en desarrollo y mejora continua.
 
-## Autor
-Enzo Recalde
+

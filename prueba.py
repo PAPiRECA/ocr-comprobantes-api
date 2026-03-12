@@ -43,41 +43,69 @@ def extract_fields(texto: str) -> dict:
         "fecha": None,
         "hora": None,
         "sucursal": None,
-        "valor": None
+        "valor": None,
+        "valor_ingresado": None,
+        "valor_entregado": None,
+        "valor_simple": None
     }
 
     # ID transacción: soporta varios formatos/OCR sucios
     id_match = re.search(
-        r"(?:ID\s*Transacci[oó]n|Id\s*T?Transaccion|IdTransaccion|ldTransaccion)[:\s]*([0-9]{6,})",
+        r"(?:ID\s*Transacci[oó]n|Id\s*T?Transaccion|Id\s*Transaccion|d\s*Transaccion|Transaccion)[:\s]*([0-9]{6,})",
         texto,
         re.IGNORECASE
     )
     if id_match:
         fields["id_transaccion"] = id_match.group(1)
 
-    # Fecha y hora: soporta Fecha/Hora y Fecha
+    # Fecha y hora
     fecha_hora_match = re.search(
-        r"(?:Fecha/Hora|Fecha)[:\s]*([0-9]{2}-[0-9]{2}-[0-9]{4})\s+([0-9]{2}:[0-9]{2}:[0-9]{2})",
+        r"(?:Fecha/Hora|Fecha)[:\s]*([0-9]{2}-[0-9]{2}-[0-9]{4})(?:\s+([0-9]{2}:[0-9]{2}:[0-9]{2}))?",
         texto,
         re.IGNORECASE
     )
     if fecha_hora_match:
         fields["fecha"] = fecha_hora_match.group(1)
-        fields["hora"] = fecha_hora_match.group(2)
+        fields["hora"] = fecha_hora_match.group(2) if fecha_hora_match.group(2) else None
 
     # Sucursal
     sucursal_match = re.search(r"Sucursal[:\s]*(.+)", texto, re.IGNORECASE)
     if sucursal_match:
         fields["sucursal"] = sucursal_match.group(1).strip()
 
-    # Valor: soporta Valor y Valor Ingresado
-    valor_match = re.search(
-        r"(?:Valor(?:\s+Ingresado)?)[:\s]*(Gs\.?\s*[0-9\.\,]+)",
+    # 1) Valor Ingresado
+    valor_ingresado_match = re.search(
+        r"Valor\s+Ingresado[:\s]*(Gs\.?\s*[0-9\.\,]+)",
         texto,
         re.IGNORECASE
     )
-    if valor_match:
-        fields["valor"] = valor_match.group(1).strip()
+    if valor_ingresado_match:
+        fields["valor_ingresado"] = valor_ingresado_match.group(1).strip()
+
+    # 2) Valor Entregado
+    valor_entregado_match = re.search(
+        r"Valor\s+Entregado[:\s]*(Gs\.?\s*[0-9\.\,]+)",
+        texto,
+        re.IGNORECASE
+    )
+    if valor_entregado_match:
+        fields["valor_entregado"] = valor_entregado_match.group(1).strip()
+
+    # 3) Valor simple
+    valor_simple_match = re.search(
+        r"Valor[:\s]*(Gs\.?\s*[0-9\.\,]+)",
+        texto,
+        re.IGNORECASE
+    )
+    if valor_simple_match:
+        fields["valor_simple"] = valor_simple_match.group(1).strip()
+
+    # valor general = dinero que metió el usuario
+    fields["valor"] = (
+        fields["valor_ingresado"]
+        or fields["valor_entregado"]
+        or fields["valor_simple"]
+    )
 
     return fields
 
@@ -111,16 +139,19 @@ def process_image_bytes(image_bytes: bytes, mime_type: str = "image/jpeg") -> di
     fields = extract_fields(clean_text)
 
     return {
-        "success": True,
-        "id_transaccion": fields["id_transaccion"],
-        "fecha": fields["fecha"],
-        "hora": fields["hora"],
-        "sucursal": fields["sucursal"],
-        "valor": fields["valor"],
-        "ocr_text": texto,
-        "clean_text": clean_text,
-        "fields": fields
-    }
+    "success": True,
+    "id_transaccion": fields["id_transaccion"],
+    "fecha": fields["fecha"],
+    "hora": fields["hora"],
+    "sucursal": fields["sucursal"],
+    "valor": fields["valor"],
+    "valor_ingresado": fields["valor_ingresado"],
+    "valor_entregado": fields["valor_entregado"],
+    "valor_simple": fields["valor_simple"],
+    "ocr_text": texto,
+    "clean_text": clean_text,
+    "fields": fields
+}
 
 @app.post("/ocr")
 async def ocr_image(file: UploadFile = File(...)):
