@@ -31,6 +31,7 @@ def clean_ocr_text(texto: str) -> str:
     texto = texto.replace("Transaccioacute;n", "Transacción")
     texto = texto.replace("IdTransaccion", "ID Transacción")
     texto = texto.replace("ldTransaccion", "ID Transacción")
+    texto = texto.replace("Id TTransaccion", "ID Transacción")
     texto = texto.replace("\r", "")
     texto = re.sub(r"[ \t]+", " ", texto)
     texto = re.sub(r"\n+", "\n", texto)
@@ -45,24 +46,36 @@ def extract_fields(texto: str) -> dict:
         "valor": None
     }
 
-    id_match = re.search(r"ID\s*Transacci[oó]n[:\s]*([0-9]{6,})", texto, re.IGNORECASE)
+    # ID transacción: soporta varios formatos/OCR sucios
+    id_match = re.search(
+        r"(?:ID\s*Transacci[oó]n|Id\s*T?Transaccion|IdTransaccion|ldTransaccion)[:\s]*([0-9]{6,})",
+        texto,
+        re.IGNORECASE
+    )
     if id_match:
         fields["id_transaccion"] = id_match.group(1)
 
+    # Fecha y hora: soporta Fecha/Hora y Fecha
     fecha_hora_match = re.search(
-    r"(?:Fecha/Hora|Fecha)[:\s]*([0-9]{2}-[0-9]{2}-[0-9]{4})(?:\s+([0-9]{2}:[0-9]{2}:[0-9]{2}))?",
-    texto,
-    re.IGNORECASE
-)
+        r"(?:Fecha/Hora|Fecha)[:\s]*([0-9]{2}-[0-9]{2}-[0-9]{4})\s+([0-9]{2}:[0-9]{2}:[0-9]{2})",
+        texto,
+        re.IGNORECASE
+    )
     if fecha_hora_match:
         fields["fecha"] = fecha_hora_match.group(1)
-        fields["hora"] = fecha_hora_match.group(2) if fecha_hora_match.group(2) else None
+        fields["hora"] = fecha_hora_match.group(2)
 
+    # Sucursal
     sucursal_match = re.search(r"Sucursal[:\s]*(.+)", texto, re.IGNORECASE)
     if sucursal_match:
         fields["sucursal"] = sucursal_match.group(1).strip()
 
-    valor_match = re.search(r"Valor[:\s]*(Gs\.?\s*[0-9\.\,]+)", texto, re.IGNORECASE)
+    # Valor: soporta Valor y Valor Ingresado
+    valor_match = re.search(
+        r"(?:Valor(?:\s+Ingresado)?)[:\s]*(Gs\.?\s*[0-9\.\,]+)",
+        texto,
+        re.IGNORECASE
+    )
     if valor_match:
         fields["valor"] = valor_match.group(1).strip()
 
