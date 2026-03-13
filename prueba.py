@@ -78,7 +78,7 @@ def extract_fields(texto: str) -> dict:
     if sucursal_match:
         fields["sucursal"] = sucursal_match.group(1).strip()
 
-    # valor = plata que metió/entregó el usuario
+    # Valor = plata que ingresó/entregó el usuario
     valor_ingresado_match = re.search(
         r"Valor\s+Ingresado[:\s]*(Gs\.?\s*[0-9\.\,]+)",
         texto,
@@ -104,6 +104,15 @@ def extract_fields(texto: str) -> dict:
         )
         if recibido_match:
             fields["valor"] = recibido_match.group(1).strip()
+
+    if not fields["valor"]:
+        valor_recibido_match = re.search(
+            r"Valor\s+recibido[:\s]*(Gs\.?\s*[0-9\.\,]+)",
+            texto,
+            re.IGNORECASE
+        )
+        if valor_recibido_match:
+            fields["valor"] = valor_recibido_match.group(1).strip()
 
     if not fields["valor"]:
         valor_simple_match = re.search(
@@ -152,9 +161,6 @@ def process_image_bytes(image_bytes: bytes, mime_type: str = "image/jpeg") -> di
     "hora": fields["hora"],
     "sucursal": fields["sucursal"],
     "valor": fields["valor"],
-    "valor_ingresado": fields["valor_ingresado"],
-    "valor_entregado": fields["valor_entregado"],
-    "valor_simple": fields["valor_simple"],
     "ocr_text": texto,
     "clean_text": clean_text,
     "fields": fields
