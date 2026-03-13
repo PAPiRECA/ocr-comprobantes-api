@@ -32,7 +32,6 @@ def clean_ocr_text(texto: str) -> str:
     texto = texto.replace("IdTransaccion", "ID Transacción")
     texto = texto.replace("ldTransaccion", "ID Transacción")
     texto = texto.replace("Id TTransaccion", "ID Transacción")
-    texto = texto.replace("NRO.TRANSACCION", "NRO. TRANSACCION")
     texto = texto.replace("ATM Transacción ID", "ATM Transacción ID")
     texto = texto.replace("RECIBIDO :", "RECIBIDO:")
     texto = texto.replace("\r", "")
