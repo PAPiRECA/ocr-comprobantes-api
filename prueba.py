@@ -32,6 +32,9 @@ def clean_ocr_text(texto: str) -> str:
     texto = texto.replace("IdTransaccion", "ID Transacción")
     texto = texto.replace("ldTransaccion", "ID Transacción")
     texto = texto.replace("Id TTransaccion", "ID Transacción")
+    texto = texto.replace("NRO.TRANSACCION", "NRO. TRANSACCION")
+    texto = texto.replace("ATM Transacción ID", "ATM Transacción ID")
+    texto = texto.replace("RECIBIDO :", "RECIBIDO:")
     texto = texto.replace("\r", "")
     texto = re.sub(r"[ \t]+", " ", texto)
     texto = re.sub(r"\n+", "\n", texto)
@@ -43,24 +46,26 @@ def extract_fields(texto: str) -> dict:
         "fecha": None,
         "hora": None,
         "sucursal": None,
-        "valor": None,
-        "valor_ingresado": None,
-        "valor_entregado": None,
-        "valor_simple": None
+        "valor": None
     }
 
-    # ID transacción: soporta varios formatos/OCR sucios
-    id_match = re.search(
-        r"(?:ID\s*Transacci[oó]n|Id\s*T?Transaccion|Id\s*Transaccion|d\s*Transaccion|Transaccion)[:\s]*([0-9]{6,})",
-        texto,
-        re.IGNORECASE
-    )
+    # ID transacción
+    id_match = re.search(r"NRO\.\s*TRANSACCION[:\s]*([0-9]{6,})", texto, re.IGNORECASE)
+    if not id_match:
+        id_match = re.search(
+            r"(?:ID\s*Transacci[oó]n|Id\s*T?Transaccion|Id\s*Transaccion|d\s*Transaccion)[:\s]*([0-9]{6,})",
+            texto,
+            re.IGNORECASE
+        )
+    if not id_match:
+        id_match = re.search(r"ATM\s*Transacci[oó]n\s*ID[:\s]*([0-9]{6,})", texto, re.IGNORECASE)
+
     if id_match:
         fields["id_transaccion"] = id_match.group(1)
 
     # Fecha y hora
     fecha_hora_match = re.search(
-        r"(?:Fecha/Hora|Fecha)[:\s]*([0-9]{2}-[0-9]{2}-[0-9]{4})(?:\s+([0-9]{2}:[0-9]{2}:[0-9]{2}))?",
+        r"(?:Fecha/Hora|Fecha)[:\s]*([0-9]{2}-[0-9]{2}-[0-9]{4}|[0-9]{2}/[0-9]{2}/[0-9]{4})(?:\s+([0-9]{2}:[0-9]{2}:[0-9]{2}))?",
         texto,
         re.IGNORECASE
     )
@@ -73,39 +78,41 @@ def extract_fields(texto: str) -> dict:
     if sucursal_match:
         fields["sucursal"] = sucursal_match.group(1).strip()
 
-    # 1) Valor Ingresado
+    # valor = plata que metió/entregó el usuario
     valor_ingresado_match = re.search(
         r"Valor\s+Ingresado[:\s]*(Gs\.?\s*[0-9\.\,]+)",
         texto,
         re.IGNORECASE
     )
     if valor_ingresado_match:
-        fields["valor_ingresado"] = valor_ingresado_match.group(1).strip()
+        fields["valor"] = valor_ingresado_match.group(1).strip()
 
-    # 2) Valor Entregado
-    valor_entregado_match = re.search(
-        r"Valor\s+Entregado[:\s]*(Gs\.?\s*[0-9\.\,]+)",
-        texto,
-        re.IGNORECASE
-    )
-    if valor_entregado_match:
-        fields["valor_entregado"] = valor_entregado_match.group(1).strip()
+    if not fields["valor"]:
+        valor_entregado_match = re.search(
+            r"Valor\s+Entregado[:\s]*(Gs\.?\s*[0-9\.\,]+)",
+            texto,
+            re.IGNORECASE
+        )
+        if valor_entregado_match:
+            fields["valor"] = valor_entregado_match.group(1).strip()
 
-    # 3) Valor simple
-    valor_simple_match = re.search(
-        r"Valor[:\s]*(Gs\.?\s*[0-9\.\,]+)",
-        texto,
-        re.IGNORECASE
-    )
-    if valor_simple_match:
-        fields["valor_simple"] = valor_simple_match.group(1).strip()
+    if not fields["valor"]:
+        recibido_match = re.search(
+            r"RECIBIDO[:\s]*(Gs\.?\s*[0-9\.\,]+)",
+            texto,
+            re.IGNORECASE
+        )
+        if recibido_match:
+            fields["valor"] = recibido_match.group(1).strip()
 
-    # valor general = dinero que metió el usuario
-    fields["valor"] = (
-        fields["valor_ingresado"]
-        or fields["valor_entregado"]
-        or fields["valor_simple"]
-    )
+    if not fields["valor"]:
+        valor_simple_match = re.search(
+            r"Valor[:\s]*(Gs\.?\s*[0-9\.\,]+)",
+            texto,
+            re.IGNORECASE
+        )
+        if valor_simple_match:
+            fields["valor"] = valor_simple_match.group(1).strip()
 
     return fields
 
