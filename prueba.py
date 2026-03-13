@@ -50,21 +50,21 @@ def extract_fields(texto: str) -> dict:
 
     # ID transacción
     id_match = re.search(
-        r"(?:ID\s*Transacci[oó]n|Id\s*T?Transaccion|Id\s*Transaccion)[:\s]*([0-9]{6,})",
+        r"ATM\s*Transacci[oó]n\s*ID[:\s]*([0-9]{6,})",
         texto,
         re.IGNORECASE
     )
 
     if not id_match:
         id_match = re.search(
-            r"ATM\s*Transacci[oó]n\s*ID[:\s]*([0-9]{6,})",
+            r"(?:^|\n)\s*(?:ID\s*Transacci[oó]n|Id\s*T?Transaccion|Id\s*Transaccion)[:\s]*([0-9]{6,})",
             texto,
             re.IGNORECASE
         )
 
     if not id_match:
         id_match = re.search(
-            r"NRO\.\s*TRANSACCION[:\s]*([0-9]{6,})",
+            r"(?:^|\n)\s*NRO\.\s*TRANSACCION[:\s]*([0-9]{6,})",
             texto,
             re.IGNORECASE
         )
