@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from openai import OpenAI
 
 app = FastAPI()
-client = OpenAI(api_key=os.getenv("NICE_TRY"))
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 prompt = """
 Transcribe el comprobante exactamente como aparece en la imagen.
