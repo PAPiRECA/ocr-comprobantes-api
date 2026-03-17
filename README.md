@@ -8,6 +8,7 @@ Este proyecto consiste en una API desarrollada para procesar comprobantes y extr
 - Extracción de monto
 
 ## Tecnologías
+- Ayuda con Claude
 - Python
 - OpenAI
 - FastAPI
