@@ -1,23 +1,46 @@
-# API de procesamiento de comprobantes
-Este proyecto consiste en una API desarrollada para procesar comprobantes y extraer datos relevantes de forma automática.
+# Receipt OCR Processing API
 
-## Características
-- Extracción de ID de transacción
-- Extracción de fecha y hora
-- Extracción de sucursal
-- Extracción de monto
+A FastAPI-based API that processes receipt images and extracts relevant transaction data automatically using OCR and LLM-powered parsing.
 
-## Tecnologías
-- Ayuda con Claude
+## Overview
+
+This project was built to automate the reading of payment receipts and convert unstructured image data into structured information that can be used inside operational workflows.
+
+The API receives a receipt image, transcribes the visible content, cleans OCR noise, and extracts key fields such as:
+
+- Transaction ID
+- Date and time
+- Branch / location
+- Amount
+
+## Why I Built This
+
+In many business workflows, receipts are still reviewed manually. This creates delays, repetitive work, and a higher chance of human error.
+
+This API was created to reduce manual effort and make receipt processing faster, more consistent, and easier to integrate into internal systems.
+
+## Tech Stack
+
 - Python
-- OpenAI
 - FastAPI
-- GitHub Codespaces
+- OpenAI API
+- Pydantic
+- HTTPX
 
-## Objetivo
-Automatizar la lectura de comprobantes y facilitar el procesamiento de datos dentro de un flujo de trabajo.
+## Main Features
 
-## Estado
-Proyecto en desarrollo y mejora continua.
+- Upload and process receipt images
+- OCR-based text transcription from receipt images
+- Text cleanup for noisy OCR output
+- Structured extraction of relevant transaction fields
+- API-ready workflow for integration into larger systems
 
+## Project Structure
+
+```text
+.
+├── main.py
+├── requirements.txt
+├── README.md
+└── .gitignore
 
