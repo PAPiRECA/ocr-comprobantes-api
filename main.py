@@ -55,6 +55,7 @@ def extract_fields(texto: str) -> dict:
         re.IGNORECASE
     )
 
+    #Loop
     if not id_match:
         id_match = re.search(
             r"(?:^|\n)\s*(?:ID\s*Transacci[oó]n|Id\s*T?Transaccion|Id\s*Transaccion)[:\s]*([0-9]{6,})",
